@@ -2,6 +2,20 @@ from playwright.sync_api import Page, expect
 from datetime import date
 import random
 
+from testing.models import Result
+
+TEST_ID = "test_select_dates"
+
+
+def _save(test_case: str, url: str, passed: bool, comment: str = "") -> None:
+    Result.objects.create(
+        test_id=TEST_ID,
+        test_case=test_case,
+        url=url,
+        passed=passed,
+        comment=comment,
+    )
+
 
 def test_select_dates(page: Page) -> None:
     today = date.today()
@@ -34,5 +48,11 @@ def test_select_dates(page: Page) -> None:
     page.get_by_role("button", name=checkout_name).click()
     page.wait_for_timeout(1000)
     page.screenshot(path="screenshots/screenshot4.png")
-    expect(page.get_by_role("search")).to_contain_text(expected_text)
+
+    try:
+        expect(page.get_by_role("search")).to_contain_text(expected_text)
+        _save(f"Search bar shows selected dates: {expected_text}", page.url, True)
+    except AssertionError as e:
+        _save(f"Search bar shows selected dates: {expected_text}", page.url, False, str(e))
+
     return expected_text
