@@ -1,5 +1,10 @@
-import re
-from playwright.sync_api import Playwright, sync_playwright, expect
+from playwright.sync_api import Playwright, sync_playwright
+
+from testing.tests.test_search_location import test_search_location
+from testing.tests.test_select_dates import test_select_dates
+from testing.tests.test_add_guests import test_add_guests
+from testing.tests.test_submit_search import test_submit_search
+from testing.tests.test_item_details import test_item_details
 
 
 def run(playwright: Playwright) -> None:
@@ -7,39 +12,21 @@ def run(playwright: Playwright) -> None:
     context = browser.new_context()
     page = context.new_page()
     page.goto("https://www.airbnb.com/")
+    
 
-    page.get_by_test_id("structured-search-input-field-query").click()
-    page.get_by_test_id("structured-search-input-field-query").fill("Bangkok")
-    expect(page.get_by_role("listbox", name="Search suggestions")).to_be_visible()
+    test_search_location(page)
+    page.wait_for_timeout(1000)
 
-    page.get_by_role("button", name="When Add dates").click()
-    page.get_by_role("button", name="Move forward to switch to the").click()
+    selected_dates = test_select_dates(page)
     page.wait_for_timeout(1000)
-    page.get_by_role("button", name="Move forward to switch to the").click()
-    page.wait_for_timeout(1000)
-    page.get_by_role("button", name="Move forward to switch to the").click()
-    page.wait_for_timeout(1000)
-    page.get_by_role("button", name="Move forward to switch to the").click()
-    page.wait_for_timeout(1000)
-    page.get_by_role("button", name="Move forward to switch to the").click()
-    page.wait_for_timeout(1000)
-    page.get_by_role("button", name="12, Sunday, July 2026.").click()
-    page.wait_for_timeout(1000)
-    page.get_by_role("button", name="18, Saturday, July 2026.").click()
-    page.wait_for_timeout(1000)
-    expect(page.get_by_role("search")).to_contain_text("Jul 12 - 18")
 
-    page.get_by_role("button", name="Who Add guests").click()
-    expect(page.locator(".p1tlhulc")).to_be_visible()
-    page.get_by_test_id("stepper-adults-increase-button").click()
-    page.get_by_test_id("stepper-adults-increase-button").click()
-    page.get_by_test_id("stepper-children-increase-button").click()
-    page.get_by_test_id("stepper-infants-increase-button").click()
-    page.get_by_test_id("stepper-pets-increase-button").click()
-    expect(page.get_by_role("search")).to_contain_text("3 guests, 1 infant, 1 pet")
+    guests = test_add_guests(page)
+    page.wait_for_timeout(1000)
 
-    page.get_by_test_id("structured-search-input-search-button").click()
+    test_submit_search(page, selected_dates, guests)
+    page.wait_for_timeout(1000)
 
+    test_item_details(page)
 
     # ---------------------
     context.close()

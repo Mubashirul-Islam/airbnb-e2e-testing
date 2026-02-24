@@ -10,7 +10,7 @@ class Command(BaseCommand):
         self.stdout.write(self.style.NOTICE("Running Playwright tests..."))
 
         result = subprocess.run(
-            [sys.executable, "testing/tests/base.py"],
+            [sys.executable, "-m", "testing.tests.base"],
             capture_output=False,
         )
 
